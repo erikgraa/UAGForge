@@ -1,5 +1,6 @@
 import { GROUPS, LISTS, type Field, type Rule, type SectionId, type Values } from './schema';
 import { fieldAvailable, groupEnabled, isEmpty, type Config } from './model';
+import { cascadeRole } from './cascade';
 import { VERSIONS } from './versions';
 
 export type Level = 'error' | 'warn' | 'info';
@@ -160,8 +161,20 @@ type Push = (i: Omit<Issue, 'id'>) => void;
 
 function lint(c: Config, push: Push): void {
   const v = c.values;
-  const horizon = v.horizon_enabled === true;
+  const role = cascadeRole(v);
+  const horizon = v.horizon_enabled === true && role !== 'outer';
   const nonEmpty = (k: string) => !isEmpty(v[k]);
+
+  if (role === 'outer') {
+    push({ level: 'info', section: 'horizon', fieldId: 'cascade_role', message: 'Outer UAG: Horizon edge service is replaced by a "Horizon-WRP" reverse proxy to the inner UAG. Set Blast/tunnel external URLs on the INNER UAG to this UAG\'s public FQDN.' });
+    if (String(v.deploymentOption).startsWith('onenic')) push({ level: 'info', section: 'network', fieldId: 'deploymentOption', message: 'Cascade: use separate NICs/DMZ networks so the outer UAG can reach DMZ 2 only through the inter-DMZ firewall.' });
+    if (!nonEmpty('cascade_innerThumbprints') && nonEmpty('cascade_innerUrl')) push({ level: 'info', section: 'horizon', fieldId: 'cascade_innerThumbprints', message: 'No inner UAG thumbprint: required if the inner UAG uses a self-signed or private-CA certificate.' });
+    if (v.cascade_fwdPcoipTcp === true !== (v.cascade_fwdPcoipUdp === true)) push({ level: 'warn', section: 'horizon', fieldId: 'cascade_fwdPcoipTcp', message: 'PCoIP needs both TCP and UDP 4172 forwarded.' });
+  }
+  if (role === 'inner') {
+    push({ level: 'info', section: 'horizon', fieldId: 'cascade_role', message: 'Inner UAG: allow only the outer UAG\'s IPs through the inter-DMZ firewall, and point Blast/tunnel external URLs at the OUTER UAG\'s public FQDN.' });
+    if (v.horizon_enabled !== true) push({ level: 'error', section: 'horizon', fieldId: 'horizon_enabled', message: 'The inner UAG of a cascade must have the Horizon edge service enabled.' });
+  }
 
   if (c.syslog.length === 0) push({ level: 'warn', section: 'monitoring', message: 'No syslog server configured - events stay on the appliance.' });
   if (!nonEmpty('ntpServers')) push({ level: 'warn', section: 'network', fieldId: 'ntpServers', message: 'No NTP server configured - clock drift breaks TLS, RADIUS and SAML.' });

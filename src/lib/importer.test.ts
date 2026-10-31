@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { defaultConfig, applyPatch } from './model';
-import { generateIni, generateJson } from './generate';
+import { defaultConfig, applyPatch, type Config } from './model';
+import { validateConfig } from './validate';
+import { generateIni, generateJson, generateJsonObject } from './generate';
 import { importIni, importJson, importText, parseIni, versionFromSource } from './importer';
 import { TEMPLATES } from './templates';
 
@@ -149,6 +150,61 @@ describe('JSON import', () => {
   it('autodetects format', () => {
     expect(importText('{"systemSettings":{}}').format).toBe('json');
     expect(importText('[General]\nuagName=a').format).toBe('ini');
+  });
+});
+
+describe('cascading (double DMZ)', () => {
+  const outer = () => TEMPLATES.find((t) => t.id === 'cascade-outer')!.build(defaultConfig());
+  const inner = () => TEMPLATES.find((t) => t.id === 'cascade-inner')!.build(defaultConfig());
+
+  it('outer UAG emits a Horizon-WRP reverse proxy, forward rules and no Horizon section', () => {
+    const c = applyPatch(outer(), { values: { cascade_innerThumbprints: 'sha1=c5 51 2f a8 1e ef a9 f8 ed fa 1b 80 05 a9 c8 bc 6e 2c 64 b1' } });
+    const ini = generateIni(c);
+    expect(ini).not.toContain('[Horizon]');
+    expect(ini).toContain('[WebReverseProxy1]\ninstanceId=Horizon-WRP\nproxyDestinationUrl=https://uag-dmz2-01.corp.local');
+    expect(ini).toContain('proxyDestinationUrlThumbprints=sha1=c5 51');
+    expect(ini).toContain('proxyPattern=(/broker/xml(.*)|/xmlapi(.*)|/broker/resources/(.*)|/ice/(.*)|/r/(.*)|/portal(.*)|/view-client/(.*)|/)');
+    expect(ini).toContain('forwardrules=tcp/8443/192.168.2.101:8443,udp/8443/192.168.2.101:8443,udp/443/192.168.2.101:443');
+    expect(generateIni(applyPatch(c, { values: { cascade_opswat: true } }))).toContain('/gateway/resources/(.*)');
+  });
+
+  it('keeps forward rules out of the JSON but emits the reverse proxy edge service', () => {
+    const o = generateJsonObject(outer()) as any;
+    expect(JSON.stringify(o)).not.toContain('forwardrules');
+    expect(o.edgeServiceSettingsList.edgeServiceSettingsList).toEqual([
+      expect.objectContaining({ identifier: 'WEB_REVERSE_PROXY', instanceId: 'Horizon-WRP' })
+    ]);
+  });
+
+  it('user reverse proxies are renumbered after the cascade proxy', () => {
+    const c = applyPatch(outer(), { wrp: [{ instanceId: 'wiki', proxyDestinationUrl: 'https://wiki.corp.local' }] });
+    expect(generateIni(c)).toContain('[WebReverseProxy2]\ninstanceId=wiki');
+  });
+
+  it('round-trips the outer UAG through INI and JSON', () => {
+    const c = applyPatch(outer(), { values: { cascade_opswat: true } });
+    const ini = generateIni(c);
+    const back = importIni(ini).config;
+    expect(back.values).toMatchObject({ cascade_role: 'outer', cascade_innerUrl: c.values.cascade_innerUrl, cascade_innerIp: '192.168.2.101', cascade_opswat: true, cascade_fwdBlastUdp: true, cascade_fwdPcoipTcp: false });
+    expect(back.wrp).toHaveLength(0);
+    expect(generateIni(back)).toBe(ini);
+    const json = generateJson(c);
+    expect(generateJson(importJson(json).config)).toBe(json);
+  });
+
+  it('inner UAG is a standard Horizon edge with an informational lint', () => {
+    const c = inner();
+    expect(generateIni(c)).toContain('[Horizon]');
+    expect(generateIni(c)).not.toContain('Horizon-WRP');
+    expect(validateConfig(c).map((i) => i.message).join('\n')).toMatch(/Inner UAG: allow only the outer/);
+    expect(validateConfig(applyPatch(c, { values: { horizon_enabled: false } })).map((i) => i.message).join('\n')).toMatch(/inner UAG of a cascade must have the Horizon/);
+  });
+
+  it('validates the outer UAG inputs', () => {
+    const m = (c: Config) => validateConfig(c).map((i) => `${i.level}:${i.message}`).join('\n');
+    expect(m(applyPatch(outer(), { values: { cascade_innerUrl: '' } }))).toMatch(/error:Inner UAG URL is required/);
+    expect(m(applyPatch(outer(), { values: { cascade_innerIp: '' } }))).toMatch(/error:Inner UAG IP.*required/);
+    expect(m(applyPatch(outer(), { values: { cascade_fwdPcoipTcp: true } }))).toMatch(/PCoIP needs both/);
   });
 });
 

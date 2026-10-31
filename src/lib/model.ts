@@ -56,6 +56,7 @@ export function groupAvailable(g: GroupDef, version: string, platform: Platform)
 
 export function groupEnabled(g: GroupDef, c: Config): boolean {
   if (!groupAvailable(g, c.version, c.platform)) return false;
+  if (g.target === 'horizon' && c.values.cascade_role === 'outer') return false;
   if (g.enabledBy) return c.values[g.enabledBy] === true;
   return true;
 }

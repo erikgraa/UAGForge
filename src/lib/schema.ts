@@ -36,7 +36,8 @@ export type Target =
   | 'oidc'
   | 'securid'
   | 'certauth'
-  | 'proxy';
+  | 'proxy'
+  | 'cascade';
 
 export interface Option {
   value: string;
@@ -165,6 +166,62 @@ export const AUTH_METHODS: Option[] = [
 const vsphereHyperv: Platform[] = ['vsphere', 'hyperv'];
 
 export const GROUPS: GroupDef[] = [
+  {
+    id: 'cascade',
+    title: 'Cascading (double DMZ)',
+    section: 'horizon',
+    target: 'cascade',
+    iniSection: 'Cascade',
+    help: 'For environments that mandate two DMZs: the OUTER UAG (DMZ 1) is only a web reverse proxy for the Horizon protocols and forwards to the INNER UAG (DMZ 2), which is a standard Horizon edge service. Create one config per appliance.',
+    fields: [
+      sel(
+        'cascade_role',
+        'This UAG is',
+        'cascade_role',
+        [
+          { value: 'none', label: 'Standalone (single DMZ)' },
+          { value: 'outer', label: 'Outer UAG - DMZ 1 (reverse proxy to inner UAG)' },
+          { value: 'inner', label: 'Inner UAG - DMZ 2 (standard Horizon edge)' }
+        ],
+        { default: 'none', json: false }
+      ),
+      text('cascade_innerUrl', 'Inner UAG URL', 'cascade_innerUrl', {
+        rule: 'httpsUrl',
+        required: true,
+        wide: true,
+        placeholder: 'https://uag2-dmz.corp.local',
+        showIf: (v) => v.cascade_role === 'outer',
+        json: false,
+        help: 'Address the outer UAG uses to reach the inner UAG (use the NAT address if NAT is in use between the DMZs).'
+      }),
+      text('cascade_innerThumbprints', 'Inner UAG thumbprint(s)', 'cascade_innerThumbprints', {
+        rule: 'thumbprints',
+        wide: true,
+        showIf: (v) => v.cascade_role === 'outer',
+        json: false,
+        placeholder: 'sha256=ad:5c:f1:…',
+        help: 'Needed when the inner UAG certificate is not from a trusted CA. Use the thumbprint helper under Horizon settings.'
+      }),
+      bool('cascade_opswat', 'Allow OPSWAT on-demand agent download (/gateway/resources)', 'cascade_opswat', false, {
+        showIf: (v) => v.cascade_role === 'outer',
+        wide: true,
+        json: false,
+        help: 'Only if OPSWAT endpoint compliance is configured on the inner UAG.'
+      }),
+      text('cascade_innerIp', 'Inner UAG IP (for forward rules)', 'cascade_innerIp', {
+        rule: 'ipv4',
+        placeholder: '192.168.2.101',
+        showIf: (v) => v.cascade_role === 'outer',
+        json: false,
+        required: (v) => ['cascade_fwdBlastTcp', 'cascade_fwdBlastUdp', 'cascade_fwdUdpTunnel', 'cascade_fwdPcoipTcp', 'cascade_fwdPcoipUdp'].some((k) => v[k] === true)
+      }),
+      bool('cascade_fwdBlastTcp', 'Forward Blast TCP 8443', 'cascade_fwdBlastTcp', false, { showIf: (v) => v.cascade_role === 'outer', json: false }),
+      bool('cascade_fwdBlastUdp', 'Forward Blast UDP 8443', 'cascade_fwdBlastUdp', false, { showIf: (v) => v.cascade_role === 'outer', json: false }),
+      bool('cascade_fwdUdpTunnel', 'Forward UDP tunnel 443', 'cascade_fwdUdpTunnel', false, { showIf: (v) => v.cascade_role === 'outer', json: false }),
+      bool('cascade_fwdPcoipTcp', 'Forward PCoIP TCP 4172', 'cascade_fwdPcoipTcp', false, { showIf: (v) => v.cascade_role === 'outer', json: false }),
+      bool('cascade_fwdPcoipUdp', 'Forward PCoIP UDP 4172', 'cascade_fwdPcoipUdp', false, { showIf: (v) => v.cascade_role === 'outer', json: false })
+    ]
+  },
   {
     id: 'appliance',
     title: 'Appliance',

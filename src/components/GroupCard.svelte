@@ -44,7 +44,7 @@
         <div class="notice">{hiddenByVersion} setting{hiddenByVersion > 1 ? 's' : ''} in this group {hiddenByVersion > 1 ? 'are' : 'is'} not available in UAG {c.version} and {hiddenByVersion > 1 ? 'are' : 'is'} hidden.</div>
       {/if}
     {:else}
-      <p class="help">Turn on to configure and include in the output.</p>
+      <p class="help">{group.target === 'horizon' && c.values.cascade_role === 'outer' ? 'Not used: this UAG is the outer cascade proxy (see Cascading above). Configure Horizon on the inner UAG.' : 'Turn on to configure and include in the output.'}</p>
     {/if}
   </section>
 {/if}
