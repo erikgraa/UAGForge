@@ -1,7 +1,7 @@
 import { GROUPS, LISTS, type Field, type GroupDef, type ListDef, type Primitive, type Values } from './schema';
 import { defaultConfig, newListItem, type Config } from './model';
-import { SECRET_PLACEHOLDER, JSON_ARRAY_KEYS } from './generate';
-import { cmpVersion, inVersion, isSupportedVersion, VERSIONS } from './versions';
+import { SECRET_PLACEHOLDER } from './generate';
+import { inVersion, isSupportedVersion } from './versions';
 
 export interface Unmapped {
   where: string;
@@ -16,6 +16,7 @@ export interface ImportResult {
   unmapped: Unmapped[];
   /** Number of fields that were populated from the input. */
   mapped: number;
+  versionDetected?: boolean;
 }
 
 export type IniDoc = { section: string; entries: { key: string; value: string }[] }[];
@@ -91,7 +92,10 @@ export function importIni(text: string, base?: Config): ImportResult {
   const general = doc.filter((s) => s.section.toLowerCase() === 'general').flatMap((s) => s.entries);
   const source = general.find((e) => e.key.toLowerCase() === 'source')?.value;
   const detected = source ? versionFromSource(source) : undefined;
-  if (detected) c.version = detected;
+  if (detected) {
+    c.version = detected;
+    result.versionDetected = true;
+  }
   if (doc.some((s) => s.section.toLowerCase() === 'azure')) c.platform = 'azure';
   else if (source && /\.vhdx?$/i.test(source)) c.platform = 'hyperv';
 
@@ -172,7 +176,7 @@ function applyJsonObject(
 }
 
 function applyListJson(c: Config, l: ListDef, arr: unknown[], result: ImportResult, where: string): void {
-  const idx: JsonIndex = new Map(l.fields.filter((f) => f.json !== false).map((f) => [(f.json ?? f.key).toLowerCase(), { field: f }]));
+  const idx: JsonIndex = new Map(l.fields.filter((f) => f.json !== false).map((f) => [String(f.json ?? f.key).toLowerCase(), { field: f }]));
   for (const raw of arr) {
     if (!raw || typeof raw !== 'object') continue;
     const item = { ...newListItem(l.id) };
@@ -269,5 +273,3 @@ export function importText(text: string, base?: Config): ImportResult {
   const t = text.trim();
   return t.startsWith('{') || t.startsWith('[') && !/^\[[A-Za-z]/.test(t) ? importJson(t, base) : importIni(t, base);
 }
-
-export { cmpVersion, VERSIONS, JSON_ARRAY_KEYS };
