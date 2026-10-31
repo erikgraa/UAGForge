@@ -197,7 +197,7 @@ kbd {
 main.layout {
   flex: 1;
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr) minmax(340px, 440px);
+  grid-template-columns: 220px minmax(0, 1fr) minmax(374px, 484px);
   min-height: 0;
 }
 nav.side {
