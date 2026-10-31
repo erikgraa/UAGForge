@@ -22,7 +22,9 @@
   let helperMsg = $state('');
   let busy = $state(false);
 
-  const hostPort = $derived(String(app.config.values.proxyDestinationUrl || 'cs01.corp.local'));
+  const outer = $derived(app.config.values.cascade_role === 'outer');
+  const thumbKey = $derived(outer ? 'cascade_innerThumbprints' : 'proxyDestinationUrlThumbprints');
+  const hostPort = $derived(String((outer ? app.config.values.cascade_innerUrl : app.config.values.proxyDestinationUrl) || 'cs01.corp.local'));
   const psCmd = $derived(powershellThumbprintCommand(hostPort));
 
   async function compute(input: string | Uint8Array) {
@@ -43,9 +45,9 @@
   }
 
   function apply(value: string) {
-    const existing = String(app.config.values.proxyDestinationUrlThumbprints || '').trim();
-    app.config.values.proxyDestinationUrlThumbprints = existing && existing !== value ? `${existing},${value}` : value;
-    app.say('Thumbprint added to the Horizon edge service');
+    const existing = String(app.config.values[thumbKey] || '').trim();
+    app.config.values[thumbKey] = existing && existing !== value ? `${existing},${value}` : value;
+    app.say(outer ? 'Thumbprint added to the inner UAG (cascade)' : 'Thumbprint added to the Horizon edge service');
   }
 
   async function checkHelper() {
@@ -118,7 +120,7 @@
         <label class="row">Use <select class="t" bind:value={alg}>
             <option>SHA-256</option><option>SHA-384</option><option>SHA-512</option><option>SHA-1</option>
           </select></label>
-        <button class="small primary" onclick={() => set && apply(uagThumbprint(set, alg))}>Add to Horizon thumbprints</button>
+        <button class="small primary" onclick={() => set && apply(uagThumbprint(set, alg))}>{outer ? 'Add to inner UAG thumbprints' : 'Add to Horizon thumbprints'}</button>
       </div>
     </div>
   {/if}

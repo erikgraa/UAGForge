@@ -86,6 +86,52 @@ export const TEMPLATES: Template[] = [
       )
   },
   {
+    id: 'cascade-outer',
+    title: 'Cascade: outer UAG (DMZ 1, reverse proxy)',
+    description: 'Double-DMZ outer appliance: reverse proxy for Client XML, tunnel and Blast on 443, with forward rules for Blast 8443/UDP, to the inner UAG.',
+    tags: ['Cascade', 'Double DMZ', 'Horizon'],
+    build: (b) =>
+      fresh(
+        b,
+        {
+          uagName: 'uag-dmz1-01',
+          name: 'uag-dmz1-01',
+          horizon_enabled: false,
+          cascade_role: 'outer',
+          cascade_innerUrl: 'https://uag-dmz2-01.corp.local',
+          cascade_innerIp: '192.168.2.101',
+          cascade_fwdBlastTcp: true,
+          cascade_fwdBlastUdp: true,
+          cascade_fwdUdpTunnel: true
+        }
+      )
+  },
+  {
+    id: 'cascade-inner',
+    title: 'Cascade: inner UAG (DMZ 2, Horizon edge)',
+    description: 'Double-DMZ inner appliance: standard Horizon edge service with RADIUS MFA. External URLs point at the outer UAG\'s public FQDN.',
+    tags: ['Cascade', 'Double DMZ', 'Horizon', 'RADIUS'],
+    build: (b) =>
+      fresh(
+        b,
+        {
+          uagName: 'uag-dmz2-01',
+          name: 'uag-dmz2-01',
+          horizon_enabled: true,
+          cascade_role: 'inner',
+          proxyDestinationUrl: 'https://cs01.corp.local',
+          authMethods: 'radius-auth',
+          gatewayLocation: 'external',
+          blastEnabled: true,
+          blastExternalUrl: 'https://vdi.example.com:443',
+          tunnelEnabled: true,
+          tunnelExternalUrl: 'https://vdi.example.com:443',
+          radius_enabled: true,
+          radius_hostName: 'radius01.corp.local'
+        }
+      )
+  },
+  {
     id: 'horizon-basic',
     title: 'Horizon minimal (passthrough)',
     description: 'Smallest working Horizon edge service with passthrough auth. Good for labs and internal gateways.',

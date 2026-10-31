@@ -2,6 +2,7 @@ import { GROUPS, LISTS, type Field, type GroupDef, type ListDef, type Primitive,
 import { defaultConfig, newListItem, type Config } from './model';
 import { SECRET_PLACEHOLDER } from './generate';
 import { inVersion, isSupportedVersion } from './versions';
+import { CASCADE_INSTANCE_ID, parseForwardRules } from './cascade';
 
 export interface Unmapped {
   where: string;
@@ -77,9 +78,22 @@ for (const g of GROUPS) for (const f of g.fields) iniIndex.set(`${g.iniSection}|
 
 const listRe = (l: ListDef) => new RegExp(`^${l.iniSection(0).replace(/0$/, '')}(\\d+)$`, 'i');
 
+/** Turn a Horizon-WRP reverse proxy (on a UAG without Horizon edge service) back into the outer cascade role. */
+function detectCascade(c: Config): void {
+  if (c.values.horizon_enabled === true) return;
+  const i = c.wrp.findIndex((w) => String(w.instanceId).toLowerCase() === CASCADE_INSTANCE_ID.toLowerCase());
+  if (i < 0) return;
+  const [w] = c.wrp.splice(i, 1);
+  c.values.cascade_role = 'outer';
+  c.values.cascade_innerUrl = String(w.proxyDestinationUrl ?? '');
+  c.values.cascade_innerThumbprints = String(w.proxyDestinationUrlThumbprints ?? '');
+  c.values.cascade_opswat = String(w.proxyPattern ?? '').includes('/gateway/resources');
+}
+
 export function importIni(text: string, base?: Config): ImportResult {
   const c = base ? (JSON.parse(JSON.stringify(base)) as Config) : defaultConfig();
   c.values.horizon_enabled = false;
+  c.values.cascade_role = 'none';
   c.wrp = [];
   c.syslog = [];
   const result: ImportResult = { config: c, format: 'ini', warnings: [], unmapped: [], mapped: 0 };
@@ -124,6 +138,10 @@ export function importIni(text: string, base?: Config): ImportResult {
     if (lower === 'certificateauth') c.values.certauth_enabled = true;
     if (lower === 'outboundproxysettings1') c.values.obp_enabled = true;
     for (const e of sec.entries) {
+      if (lower === 'general' && e.key.toLowerCase() === 'forwardrules') {
+        parseForwardRules(e.value, c.values);
+        continue;
+      }
       if (lower === 'general' && e.key.toLowerCase() === 'snmpenabled') {
         if (/^true$/i.test(e.value)) c.values.snmp_enabled = true;
         continue;
@@ -141,6 +159,7 @@ export function importIni(text: string, base?: Config): ImportResult {
 
   c.wrp = [...listItems.wrp.entries()].sort((a, b) => a[0] - b[0]).map((x) => x[1]);
   c.syslog = [...listItems.syslog.entries()].sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+  detectCascade(c);
   if (!c.values.name && c.values.uagName) c.values.name = c.values.uagName;
   return result;
 }
@@ -192,6 +211,7 @@ function applyListJson(c: Config, l: ListDef, arr: unknown[], result: ImportResu
 export function importJson(text: string, base?: Config): ImportResult {
   const c = base ? (JSON.parse(JSON.stringify(base)) as Config) : defaultConfig();
   c.values.horizon_enabled = false;
+  c.values.cascade_role = 'none';
   c.wrp = [];
   c.syslog = [];
   const result: ImportResult = { config: c, format: 'json', warnings: [], unmapped: [], mapped: 0 };
@@ -269,6 +289,7 @@ export function importJson(text: string, base?: Config): ImportResult {
         result.unmapped.push({ where: 'root', key: top });
     }
   }
+  detectCascade(c);
   if (!c.values.name && c.values.uagName) c.values.name = c.values.uagName;
   return result;
 }

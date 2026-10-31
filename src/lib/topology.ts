@@ -1,4 +1,5 @@
 import type { Config } from './model';
+import { FORWARD_FLAGS, cascadeRole } from './cascade';
 import { collectBlocks } from './generate';
 import type { Issue } from './validate';
 import { platformDef } from './versions';
@@ -32,7 +33,10 @@ export function buildTopology(c: Config): Topology {
   nodes.push({ id: 'uag', label: String(v.uagName || 'uag'), sub: ext || `UAG ${c.version}`, kind: 'uag' });
   edges.push({ from: 'client', to: 'uag', label: v.blastEnabled === true && v.horizon_enabled === true ? '443 / 8443' : '443' });
 
-  if (v.horizon_enabled === true) {
+  if (cascadeRole(v) === 'outer') {
+    nodes.push({ id: 'inner', label: 'Inner UAG', sub: host(v.cascade_innerUrl), kind: 'uag' });
+    edges.push({ from: 'uag', to: 'inner', label: 'DMZ 2' });
+  } else if (v.horizon_enabled === true) {
     nodes.push({ id: 'cs', label: 'Horizon CS', sub: host(v.proxyDestinationUrl), kind: 'backend' });
     edges.push({ from: 'uag', to: 'cs', label: 'XML-API' });
   }
@@ -71,20 +75,23 @@ export function generateDocs(c: Config, issues: Issue[]): string {
   if (v.dns) L.push(`- **DNS:** ${v.dns}`);
   if (v.ntpServers) L.push(`- **NTP:** ${v.ntpServers}`);
   L.push('', '## Edge services', '');
-  if (v.horizon_enabled === true) {
+  if (cascadeRole(v) === 'outer') L.push(`- **Cascade - outer UAG (DMZ 1)** reverse proxy → ${v.cascade_innerUrl || '(not set)'}`);
+  if (cascadeRole(v) === 'inner') L.push('- **Cascade - inner UAG (DMZ 2)**: Horizon external URLs must point to the outer UAG');
+  if (v.horizon_enabled === true && cascadeRole(v) !== 'outer') {
     L.push(`- **Horizon** → ${v.proxyDestinationUrl || '(not set)'} (auth: ${v.authMethods}, location: ${v.gatewayLocation})`);
     if (v.blastEnabled === true) L.push(`  - Blast: ${v.blastExternalUrl || 'default'}`);
     if (v.tunnelEnabled === true) L.push(`  - Tunnel: ${v.tunnelExternalUrl || 'default'}`);
     if (v.pcoipEnabled === true) L.push(`  - PCoIP: ${v.pcoipExternalUrl || 'default'}`);
   }
   for (const w of c.wrp) L.push(`- **Web reverse proxy \`${w.instanceId}\`** → ${w.proxyDestinationUrl} (auth: ${w.authMethods})`);
-  if (v.horizon_enabled !== true && c.wrp.length === 0) L.push('- none');
+  if (v.horizon_enabled !== true && cascadeRole(v) !== 'outer' && c.wrp.length === 0) L.push('- none');
   L.push('', '## Authentication', '');
   L.push(v.radius_enabled === true ? `- RADIUS: ${v.radius_hostName}:${v.radius_authPort} (${v.radius_authType})${v.radius_enabledAux === true ? ` + secondary ${v.radius_hostName_2}` : ''}` : '- RADIUS: off');
   L.push(v.saml_enabled === true ? `- SAML IdP: ${v.saml_entityID}` : '- SAML: off');
   L.push('', '## Firewall / ports to publish', '');
   const ports = new Set<string>(['TCP 443 (HTTPS / XML-API / tunnel)']);
   if (v.horizon_enabled === true && v.blastEnabled === true) ports.add('TCP+UDP 8443 (Blast)');
+  if (cascadeRole(v) === 'outer') for (const f of FORWARD_FLAGS) if (v[f.id] === true) ports.add(`${f.proto.toUpperCase()} ${f.port} (forwarded to inner UAG)`);
   if (v.horizon_enabled === true && v.pcoipEnabled === true) ports.add('TCP+UDP 4172 (PCoIP)');
   L.push(...[...ports].map((p) => `- ${p}`), '- TCP 9443 (admin UI/API - management network only)');
   L.push('', '## Monitoring', '');

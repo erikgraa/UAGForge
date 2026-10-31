@@ -7,6 +7,7 @@ import {
   type Values
 } from './schema';
 import { fieldAvailable, groupEnabled, isDefault, isEmpty, type Config } from './model';
+import { CASCADE_INSTANCE_ID, CASCADE_PATTERN, CASCADE_PATTERN_OPSWAT, cascadeRole, forwardRules } from './cascade';
 import { platformDef } from './versions';
 
 export type SecretMode = 'placeholder' | 'omit' | 'include';
@@ -65,6 +66,7 @@ export function collectBlocks(c: Config, opts: GenerateOptions = { secrets: 'pla
   };
 
   for (const g of GROUPS) {
+    if (g.target === 'cascade') continue;
     if (!groupEnabled(g, c)) continue;
     if (g.target === 'horizon' && c.values.horizon_enabled !== true) continue;
     const entries: Entry[] = [];
@@ -88,8 +90,26 @@ export function collectBlocks(c: Config, opts: GenerateOptions = { secrets: 'pla
     get(g.iniSection, g.target === 'deploy' ? 'system' : g.target).entries.push(...entries);
   }
 
+  const outer = cascadeRole(c.values) === 'outer';
+  if (outer) {
+    const f = (key: string): Field => ({ id: key, label: key, type: 'text', key });
+    const v = c.values;
+    const wrp: Entry[] = [
+      [ 'instanceId', CASCADE_INSTANCE_ID ],
+      [ 'proxyDestinationUrl', String(v.cascade_innerUrl ?? '') ],
+      [ 'proxyDestinationUrlThumbprints', String(v.cascade_innerThumbprints ?? '') ],
+      [ 'proxyPattern', v.cascade_opswat === true ? CASCADE_PATTERN_OPSWAT : CASCADE_PATTERN ]
+    ]
+      .filter(([, val]) => val !== '')
+      .map(([key, val]) => ({ key, jsonKey: key, value: val, field: f(key), secret: false }));
+    if (wrp.length) get('WebReverseProxy1', 'wrp', 1).entries.push(...wrp);
+    const rules = forwardRules(v);
+    if (rules) get('General', 'system').entries.push({ key: 'forwardrules', jsonKey: false, value: rules, field: f('forwardrules'), secret: false });
+  }
+
   for (const l of LISTS) {
     const items = c[l.id];
+    const offset = outer && l.id === 'wrp' ? 1 : 0;
     items.forEach((item, i) => {
       const entries: Entry[] = [];
       for (const f of l.fields) {
@@ -97,7 +117,7 @@ export function collectBlocks(c: Config, opts: GenerateOptions = { secrets: 'pla
         const e = entryFor(f, item, opts.secrets);
         if (e) entries.push(e);
       }
-      if (entries.length) get(l.iniSection(i + 1), l.target, i + 1).entries.push(...entries);
+      if (entries.length) get(l.iniSection(i + 1 + offset), l.target, i + 1 + offset).entries.push(...entries);
     });
   }
 
