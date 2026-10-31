@@ -16,7 +16,7 @@ A live demo is available at **[uag-forge.omnissa.graa.dev](https://uag-forge.omn
 - 📄 **INI for `uagdeploy.ps1`** (the primary deploy path - the script takes an INI via `-iniFile`, not JSON) **and settings JSON** for the admin UI *Import settings* / `PUT /rest/v1/config/settings`.
 - 💻 **PowerShell output** that writes the INI and runs `uagdeploy.ps1` (vSphere), `uagdeployhv.ps1` (Hyper-V) or `uagdeployaz.ps1` (Azure), interactive or non-interactive.
 - 🧬 **Version-aware form** driven by a data-driven schema ([`src/lib/schema.ts`](src/lib/schema.ts)): fields appear/disappear per UAG version and platform.
-- 🎯 **Scope (v1):** Horizon and Web Reverse Proxy edge services, RADIUS and SAML authentication, TLS protocols/ciphers/certificates, syslog (UDP/TCP/TLS/MQTT) and SNMP (v1/v2c/v3).
+- 🎯 **Scope:** Horizon and Web Reverse Proxy edge services; RADIUS, SAML, OpenID Connect, RSA SecurID and certificate authentication; TLS protocols/ciphers/certificates, outbound proxy, syslog (UDP/TCP/TLS/MQTT) and SNMP (v1/v2c/v3). Platforms: vSphere, Hyper-V, Azure. OIDC, SecurID, certificate auth and outbound proxy are emitted to the INI only (their JSON shape is not documented).
 - 📥 **Import** an existing INI or settings JSON (paste or file) with a preview of what was recognised/ignored; the UAG version is detected from the image file name.
 - ✅ **Validation + best-practice lint** (required fields, IPv4/URL/port/thumbprint formats, RADIUS timing, duplicate IPs, TLS 1.0/1.1, SSH, missing syslog/NTP, no MFA on an external gateway, SHA-1 thumbprints …). Click a finding to jump to the field.
 - 🗺️ **Topology diagram** that updates live, 📋 **templates** (e.g. *Horizon external access with RADIUS MFA*), 📝 **Docs** tab (Markdown runbook summary), ⌨️ **command palette** (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd>).
@@ -100,7 +100,15 @@ Stack: Vite + Svelte 5 + TypeScript. Layout:
 
 ### 🧩 Adding a setting
 
-Add a `Field` to a group in `schema.ts` (key, type, optional `since`/`until`, `rule`, `showIf`). The form, INI/JSON output, import mapping, validation and command palette pick it up automatically.
+Add a `Field` to a group in `schema.ts` (key, type, optional `since`/`until`, `rule`, `showIf`). The form, INI/JSON output, import mapping, validation and command palette pick it up automatically. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+### 🌐 Hosting
+
+The demo is deployed to GitHub Pages by [`.github/workflows/pages.yml`](.github/workflows/pages.yml) on every push to `main`. The build is a plain static site with a relative base path, so `dist/` can be hosted anywhere. A weekly workflow checks the Omnissa Lifecycle Matrix and opens an issue when the supported UAG versions change.
+
+## 📄 License
+
+[MIT](LICENSE)
 
 ## ⚠️ Disclaimer
 

@@ -6,6 +6,22 @@ import type { SecretMode } from './generate';
 const DRAFT_KEY = 'uag-forge.draft';
 const THEME_KEY = 'uag-forge.theme';
 
+/** One-time move of values saved under the pre-rename "uagforge.*" keys. */
+function migrateLegacyKeys(): void {
+  try {
+    for (const [from, to] of [['uagforge.draft', DRAFT_KEY], ['uagforge.theme', THEME_KEY]]) {
+      const v = localStorage.getItem(from);
+      if (v !== null) {
+        if (localStorage.getItem(to) === null) localStorage.setItem(to, v);
+        localStorage.removeItem(from);
+      }
+    }
+  } catch {
+    /* storage unavailable */
+  }
+}
+migrateLegacyKeys();
+
 export type OutputTab = 'ini' | 'json' | 'ps' | 'docs';
 
 function loadDraft(): Config {
