@@ -119,6 +119,10 @@ export function importIni(text: string, base?: Config): ImportResult {
     if (lower === 'radiusauth') c.values.radius_enabled = true;
     if (lower === 'snmpsettings') c.values.snmp_enabled = true;
     if (lower === 'idpexternalmetadata1') c.values.saml_enabled = true;
+    if (lower === 'oidcprovidersetting') c.values.oidc_enabled = true;
+    if (lower === 'securidauth') c.values.securid_enabled = true;
+    if (lower === 'certificateauth') c.values.certauth_enabled = true;
+    if (lower === 'outboundproxysettings1') c.values.obp_enabled = true;
     for (const e of sec.entries) {
       if (lower === 'general' && e.key.toLowerCase() === 'snmpenabled') {
         if (/^true$/i.test(e.value)) c.values.snmp_enabled = true;

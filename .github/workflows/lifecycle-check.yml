@@ -1,0 +1,37 @@
+name: Check UAG lifecycle
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  lifecycle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare supported UAG versions with the Omnissa Lifecycle Matrix
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          page=$(curl -fsSL -A "Mozilla/5.0" "https://docs.omnissa.com/bundle/Product-Lifecycle-Matrix/page/lifecyclematrix.html")
+          upstream=$(echo "$page" | sed -e 's/<[^>]*>/ /g' | grep -oE 'Unified Access Gateway [0-9]{4} +Supported' | grep -oE '[0-9]{4}' | sort -u | tr '\n' ' ' | sed 's/ $//')
+          local=$(grep -oE "id: '[0-9]{4}'" src/lib/versions.ts | grep -oE '[0-9]{4}' | sort -u | tr '\n' ' ' | sed 's/ $//')
+          echo "upstream: $upstream"
+          echo "local:    $local"
+          if [ -z "$upstream" ]; then echo "Could not parse the lifecycle page"; exit 1; fi
+          if [ "$upstream" != "$local" ]; then
+            title="UAG lifecycle matrix changed"
+            if [ -z "$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number')" ]; then
+              gh issue create --title "$title" --body "Supported UAG versions per the Omnissa Lifecycle Matrix: \`$upstream\`.
+
+Versions in \`src/lib/versions.ts\`: \`$local\`.
+
+Update \`VERSIONS\`, \`LIFECYCLE_SNAPSHOT\` and the README list, then review new INI keys for the added release."
+            fi
+          fi

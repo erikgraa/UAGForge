@@ -202,6 +202,9 @@ function lint(c: Config, push: Push): void {
     if (v.authMethods === 'passthrough' && v.gatewayLocation === 'external') push({ level: 'warn', section: 'horizon', fieldId: 'authMethods', message: 'External gateway with passthrough authentication - no MFA in the DMZ. Consider RADIUS or SAML.' });
     if (v.authMethods === 'radius-auth' && v.radius_enabled !== true) push({ level: 'error', section: 'auth', message: 'Horizon uses RADIUS authentication but RADIUS is not configured.' });
     if (v.authMethods === 'saml-auth' && v.saml_enabled !== true) push({ level: 'error', section: 'auth', message: 'Horizon uses SAML authentication but no SAML identity provider is configured.' });
+    if (v.authMethods === 'oidc-auth' && v.oidc_enabled !== true) push({ level: 'error', section: 'auth', message: 'Horizon uses OpenID Connect authentication but no OIDC provider is configured.' });
+    if (v.authMethods === 'securid-auth' && v.securid_enabled !== true) push({ level: 'error', section: 'auth', message: 'Horizon uses RSA SecurID authentication but RSA SecurID is not configured.' });
+    if (v.authMethods === 'certificate-auth' && v.certauth_enabled !== true) push({ level: 'error', section: 'auth', message: 'Horizon uses certificate authentication but it is not configured.' });
     if (v.originCheckEnabled === false) push({ level: 'warn', section: 'horizon', fieldId: 'originCheckEnabled', message: 'Origin header check is disabled - leaves Horizon web access open to cross-origin requests.' });
     if (v.clientEncryptionMode === 'DISABLED') push({ level: 'warn', section: 'horizon', fieldId: 'clientEncryptionMode', message: 'Client encryption mode is DISABLED.' });
     const extra = String(v.additionalBlastExternalUrls ?? '').split(',').map((x) => hostOf(x.trim())).filter(Boolean);

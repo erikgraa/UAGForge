@@ -153,6 +153,32 @@ describe('JSON import', () => {
 });
 
 describe('patching', () => {
+  it('writes OIDC, SecurID, certificate auth and outbound proxy sections (INI only)', () => {
+    const c = applyPatch(defaultConfig(), {
+      values: {
+        oidc_enabled: true, oidc_oidcConfigurationId: 'idp1', oidc_oidcConfigUrl: 'https://login.example.com/.well-known/openid-configuration', oidc_oidcClientId: 'cid',
+        securid_enabled: true, securid_serverHostname: 'rsa.corp.local', securid_accessKey: 'k3y',
+        certauth_enabled: true, certauth_pemCerts: 'C:\\ca.pem', certauth_enableOCSP: true,
+        obp_enabled: true, obp_name: 'px', obp_proxyUrl: 'http://proxy.corp.local:3128'
+      }
+    });
+    const ini = generateIni(c, { secrets: 'include' });
+    expect(ini).toContain('[OidcProviderSetting]\noidcConfigurationId=idp1');
+    expect(ini).toContain('[SecurIDAuth]');
+    expect(ini).toContain('accessKey=k3y');
+    expect(ini).toContain('[CertificateAuth]');
+    expect(ini).toContain('enableOCSP=true');
+    expect(ini).toContain('[OutboundProxySettings1]');
+    expect(generateIni(c)).not.toContain('k3y');
+    expect(generateJson(c, { secrets: 'include' })).not.toContain('rsa.corp.local');
+    const back = importIni(ini, defaultConfig()).config;
+    expect(back.values).toMatchObject({ oidc_enabled: true, securid_enabled: true, certauth_enabled: true, obp_enabled: true, securid_serverHostname: 'rsa.corp.local' });
+  });
+  it('gates the strict certificate validation key to UAG 2609', () => {
+    const v = { certauth_enabled: true, certauth_pemCerts: 'a.pem', certauth_enableStrictCertificateValidation: true };
+    expect(generateIni(applyPatch(defaultConfig(), { values: v }))).toContain('enableStrictCertificateValidation=true');
+    expect(generateIni(applyPatch(defaultConfig(), { version: '2606', values: v }))).not.toContain('enableStrictCertificateValidation');
+  });
   it('applyPatch keeps defaults for list items', () => {
     const c = applyPatch(defaultConfig(), { wrp: [{ instanceId: 'a' }] });
     expect(c.wrp[0].proxyPattern).toBe('/(.*)');

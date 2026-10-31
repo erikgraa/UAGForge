@@ -32,7 +32,11 @@ export type Target =
   | 'snmp'
   | 'syslog'
   | 'certs'
-  | 'azure';
+  | 'azure'
+  | 'oidc'
+  | 'securid'
+  | 'certauth'
+  | 'proxy';
 
 export interface Option {
   value: string;
@@ -492,6 +496,83 @@ export const GROUPS: GroupDef[] = [
     ]
   },
   {
+    id: 'oidc',
+    title: 'OpenID Connect',
+    section: 'auth',
+    target: 'oidc',
+    iniSection: 'OidcProviderSetting',
+    enabledBy: 'oidc_enabled',
+    since: '2506',
+    help: 'OIDC provider for Horizon. Select OpenID Connect as the auth method on the Horizon edge service and set the OIDC configuration ID there. INI only; not emitted to JSON.',
+    fields: [
+      text('oidc_oidcConfigurationId', 'Configuration ID', 'oidcConfigurationId', { required: true, placeholder: 'entra-horizon', json: false }),
+      text('oidc_oidcConfigUrl', 'Discovery (config) URL', 'oidcConfigUrl', { rule: 'httpsUrl', required: true, wide: true, placeholder: 'https://login.example.com/.well-known/openid-configuration', json: false }),
+      text('oidc_oidcClientId', 'Client ID', 'oidcClientId', { required: true, json: false }),
+      bool('oidc_oidcForceAuthPrompt', 'Force authentication prompt', 'oidcForceAuthPrompt', false, { json: false }),
+      num('oidc_oidcTimeoutSeconds', 'Timeout (s)', 'oidcTimeoutSeconds', { min: 1, json: false })
+    ]
+  },
+  {
+    id: 'securid',
+    title: 'RSA SecurID',
+    section: 'auth',
+    target: 'securid',
+    iniSection: 'SecurIDAuth',
+    enabledBy: 'securid_enabled',
+    since: '2506',
+    help: 'RSA Authentication Manager REST settings. INI only; not emitted to JSON.',
+    fields: [
+      text('securid_serverHostname', 'Server host name', 'serverHostname', { rule: 'hostOrIp', required: true, json: false }),
+      num('securid_serverPort', 'Server port', 'serverPort', { default: 5555, rule: 'port', json: false }),
+      secret('securid_accessKey', 'Access key', 'accessKey', { required: true, json: false }),
+      num('securid_authenticationTimeout', 'Authentication timeout (s)', 'authenticationTimeout', { min: 1, json: false }),
+      text('securid_pemCerts', 'Server CA cert (PEM path)', 'pemCerts', { wide: true, json: false })
+    ]
+  },
+  {
+    id: 'certauth',
+    title: 'Certificate (X.509 / smart card) authentication',
+    section: 'auth',
+    target: 'certauth',
+    iniSection: 'CertificateAuth',
+    enabledBy: 'certauth_enabled',
+    since: '2506',
+    help: 'Client-certificate authentication. INI only; not emitted to JSON.',
+    fields: [
+      text('certauth_pemCerts', 'CA certificates (PEM path)', 'pemCerts', { wide: true, required: true, placeholder: 'C:\\certs\\ca-chain.pem', json: false }),
+      bool('certauth_enableCertRevocation', 'Enable certificate revocation', 'enableCertRevocation', false, { json: false }),
+      bool('certauth_enableCertCRL', 'Use CRL', 'enableCertCRL', false, { json: false }),
+      text('certauth_crlLocation', 'CRL location', 'crlLocation', {
+        rule: 'url',
+        wide: true,
+        showIf: (v) => v.certauth_enableCertCRL === true,
+        json: false
+      }),
+      bool('certauth_enableOCSP', 'Use OCSP', 'enableOCSP', false, { json: false }),
+      bool('certauth_enableOCSPCRLFailover', 'OCSP to CRL failover', 'enableOCSPCRLFailover', false, { json: false }),
+      text('certauth_userIdSource', 'User ID source', 'userIdSource', { json: false, help: 'Certificate field used as the user ID, e.g. the UPN.' }),
+      bool('certauth_validateUpn', 'Validate UPN', 'validateUpn', false, { json: false }),
+      num('certauth_requestTimeout', 'Request timeout (s)', 'requestTimeout', { min: 1, json: false }),
+      bool('certauth_enableStrictCertificateValidation', 'Strict certificate validation', 'enableStrictCertificateValidation', false, { since: '2609', json: false })
+    ]
+  },
+  {
+    id: 'outboundproxy',
+    title: 'Outbound proxy',
+    section: 'network',
+    target: 'proxy',
+    iniSection: 'OutboundProxySettings1',
+    enabledBy: 'obp_enabled',
+    help: 'Route selected outbound UAG traffic through an HTTP(S) proxy. INI only; not emitted to JSON.',
+    fields: [
+      text('obp_name', 'Name', 'name', { required: true, placeholder: 'corp-proxy', json: false }),
+      text('obp_proxyUrl', 'Proxy URL', 'proxyUrl', { rule: 'url', required: true, wide: true, placeholder: 'http://proxy.corp.local:3128', json: false }),
+      sel('obp_proxyType', 'Proxy type', 'proxyType', ['HTTP', 'HTTPS'], { default: 'HTTP', json: false }),
+      text('obp_includedHosts1', 'Included hosts', 'includedHosts1', { wide: true, placeholder: 'api.example.com', json: false }),
+      text('obp_trustedCert1', 'Trusted CA cert (PEM path)', 'trustedCert1', { wide: true, json: false })
+    ]
+  },
+  {
     id: 'tls',
     title: 'TLS protocols & ciphers',
     section: 'tls',
@@ -622,7 +703,11 @@ export const VIRTUAL_DEFAULTS: Values = {
   horizon_enabled: true,
   radius_enabled: false,
   saml_enabled: false,
-  snmp_enabled: false
+  snmp_enabled: false,
+  oidc_enabled: false,
+  securid_enabled: false,
+  certauth_enabled: false,
+  obp_enabled: false
 };
 
 export function allGroupFields(): { group: GroupDef; field: Field }[] {
