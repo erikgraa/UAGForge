@@ -27,6 +27,9 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run build
+      - name: Verify custom domain file
+        run: test "$(cat dist/CNAME)" = "uagforge.omnissa.graa.dev"
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
