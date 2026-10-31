@@ -11,7 +11,7 @@ export function generatePowerShell(c: Config, mode: SecretMode = 'placeholder'):
   const script = platformScript(c);
   const def = platformDef(c.platform);
   const out: string[] = [
-    `# UAGForge - UAG ${c.version} on ${def.label}`,
+    `# UAG Forge - UAG ${c.version} on ${def.label}`,
     `# Prerequisites: extract the uagdeploy scripts from the Omnissa Customer Connect download`,
     `# (${script} + uagdeploy.psm1)${c.platform === 'vsphere' ? ' and install OVF Tool 4.4.3 or later' : ''}.`,
     '',

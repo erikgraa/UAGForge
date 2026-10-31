@@ -3,8 +3,8 @@ import { isSupportedVersion, DEFAULT_VERSION } from './versions';
 import type { SectionId } from './schema';
 import type { SecretMode } from './generate';
 
-const DRAFT_KEY = 'uagforge.draft';
-const THEME_KEY = 'uagforge.theme';
+const DRAFT_KEY = 'uag-forge.draft';
+const THEME_KEY = 'uag-forge.theme';
 
 export type OutputTab = 'ini' | 'json' | 'ps' | 'docs';
 
