@@ -103,8 +103,7 @@ export const TEMPLATES: Template[] = [
           cascade_fwdBlastTcp: true,
           cascade_fwdBlastUdp: true,
           cascade_fwdUdpTunnel: true
-        },
-        { syslog: [syslogTls] }
+        }
       )
   },
   {
@@ -129,8 +128,7 @@ export const TEMPLATES: Template[] = [
           tunnelExternalUrl: 'https://vdi.example.com:443',
           radius_enabled: true,
           radius_hostName: 'radius01.corp.local'
-        },
-        { syslog: [syslogTls] }
+        }
       )
   },
   {
