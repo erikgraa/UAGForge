@@ -92,7 +92,7 @@ export async function helperAvailable(base = HELPER_URL, timeoutMs = 800): Promi
     const r = await fetch(`${base}/ping`, { signal: ctl.signal });
     clearTimeout(t);
     const j = (await r.json()) as { app?: string };
-    return j.app === 'uagforge-helper';
+    return j.app === 'uag-forge-helper';
   } catch {
     return false;
   }

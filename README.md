@@ -1,15 +1,15 @@
 <p align="center">
-  <img src="assets/uagforge-icon.png" alt="UAGForge" width="140" />
+  <img src="assets/uag-forge-icon.png" alt="UAG Forge" width="140" />
 </p>
 
-<h1 align="center">UAGForge</h1>
+<h1 align="center">UAG Forge</h1>
 <p align="center">Visual config builder for <strong>Omnissa Unified Access Gateway (UAG)</strong> - generates <code>uagdeploy</code> INI, settings JSON and PowerShell. 100% client-side.</p>
 
-![UAGForge builder (dark)](docs/screenshots/builder-dark.png)
+![UAG Forge builder (dark)](docs/screenshots/builder-dark.png)
 
 ## 🚀 Demo
 
-A live demo is available at **[uagforge.omnissa.graa.dev](https://uagforge.omnissa.graa.dev)** - everything runs in your browser, nothing is uploaded.
+A live demo is available at **[uag-forge.omnissa.graa.dev](https://uag-forge.omnissa.graa.dev)** - everything runs in your browser, nothing is uploaded.
 
 ## ✨ Features
 
@@ -33,7 +33,7 @@ A live demo is available at **[uagforge.omnissa.graa.dev](https://uagforge.omnis
 
 ## 🛡️ Supported UAG versions
 
-UAGForge supports every UAG release that is **not end-of-life** according to the [Omnissa Lifecycle Matrix](https://docs.omnissa.com/bundle/Product-Lifecycle-Matrix/page/lifecyclematrix.html) (snapshot **2026-10-30**; UAG inherits the lifecycle of the product it is integrated with):
+UAG Forge supports every UAG release that is **not end-of-life** according to the [Omnissa Lifecycle Matrix](https://docs.omnissa.com/bundle/Product-Lifecycle-Matrix/page/lifecyclematrix.html) (snapshot **2026-10-30**; UAG inherits the lifecycle of the product it is integrated with):
 
 `2212 · 2303 · 2306 · 2309 · 2312 · 2406 · 2412 · 2503 · 2506 · 2512 · 2603 · 2606 · 2609`
 
@@ -54,7 +54,7 @@ INI section and key names (`[General]`, `[Horizon]`, `[RADIUSAuth]`, `[SnmpSetti
 
 ### 🧾 Settings JSON - read this
 
-Omnissa documents the JSON as an *export/import format* of the admin UI but does not publish a schema page; the authoritative schema is the Swagger UI on your appliance (`https://<uag>:9443/swagger`). UAGForge mirrors the admin-UI export structure (`systemSettings`, `edgeServiceSettingsList`, `authMethodSettingsList`, …) and uses the same key names as the INI. Deploy-time-only values (VM name, networks, IPs, certificate file paths …) are intentionally **not** part of the JSON. **Validate JSON on a non-production appliance first**, and prefer exporting a baseline from your own UAG and using *Import* here to compare.
+Omnissa documents the JSON as an *export/import format* of the admin UI but does not publish a schema page; the authoritative schema is the Swagger UI on your appliance (`https://<uag>:9443/swagger`). UAG Forge mirrors the admin-UI export structure (`systemSettings`, `edgeServiceSettingsList`, `authMethodSettingsList`, …) and uses the same key names as the INI. Deploy-time-only values (VM name, networks, IPs, certificate file paths …) are intentionally **not** part of the JSON. **Validate JSON on a non-production appliance first**, and prefer exporting a baseline from your own UAG and using *Import* here to compare.
 
 ## 🔒 Security & privacy
 
@@ -69,9 +69,9 @@ A static web page **cannot** open a TLS connection to read a remote server's cer
 
 1. **Paste a PEM/DER certificate** (or load a file). SHA-1/256/384/512 are computed locally with WebCrypto and can be added as `sha256=aa:bb:…`.
 2. **PowerShell one-liner** - copy and run it on any host that can reach the Connection Server; it prints all four thumbprints.
-3. **Optional local helper** ([`helper/uagforge-helper.mjs`](helper/uagforge-helper.mjs)) - a ~100-line, dependency-free Node script. Start it with `node helper/uagforge-helper.mjs`; when it is running the app detects it and can fetch and apply the thumbprint with one click.
+3. **Optional local helper** ([`helper/uag-forge-helper.mjs`](helper/uag-forge-helper.mjs)) - a ~100-line, dependency-free Node script. Start it with `node helper/uag-forge-helper.mjs`; when it is running the app detects it and can fetch and apply the thumbprint with one click.
 
-   - Listens only on `http://127.0.0.1:47821`; rejects unexpected `Host` headers (DNS rebinding); answers only browsers from `localhost`, `*.github.io`, `uagforge.omnissa.graa.dev` or an origin you pass with `--origin https://your-host` (`--port` changes the port).
+   - Listens only on `http://127.0.0.1:47821`; rejects unexpected `Host` headers (DNS rebinding); answers only browsers from `localhost`, `*.github.io`, `uag-forge.omnissa.graa.dev` or an origin you pass with `--origin https://your-host` (`--port` changes the port).
    - Endpoints: `GET /ping` and `GET /thumbprint?host=cs01.corp.local&port=443`. It returns only the certificate's public fingerprints and subject; it stores and logs nothing.
    - The app works fully without it. (Safari blocks `https` pages talking to `http://127.0.0.1`; use the paste or PowerShell route there.)
 
@@ -104,4 +104,4 @@ Add a `Field` to a group in `schema.ts` (key, type, optional `since`/`until`, `r
 
 ## ⚠️ Disclaimer
 
-UAGForge is an independent community tool and is not affiliated with or endorsed by Omnissa. Always review generated configuration before deploying to production.
+UAG Forge is an independent community tool and is not affiliated with or endorsed by Omnissa. Always review generated configuration before deploying to production.
