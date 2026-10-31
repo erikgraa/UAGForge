@@ -67,7 +67,7 @@ A static web page **cannot** open a TLS connection to read a remote server's cer
 2. **PowerShell one-liner** - copy and run it on any host that can reach the Connection Server; it prints all four thumbprints.
 3. **Optional local helper** ([`helper/uagforge-helper.mjs`](helper/uagforge-helper.mjs)) - a ~100-line, dependency-free Node script. Start it with `node helper/uagforge-helper.mjs`; when it is running the app detects it and can fetch and apply the thumbprint with one click.
 
-   - Listens only on `http://127.0.0.1:47821`; rejects unexpected `Host` headers (DNS rebinding); answers only browsers from `localhost`, `*.github.io` or an origin you pass with `--origin https://your-host` (`--port` changes the port).
+   - Listens only on `http://127.0.0.1:47821`; rejects unexpected `Host` headers (DNS rebinding); answers only browsers from `localhost`, `*.github.io`, `uagforge.omnissa.graa.dev` or an origin you pass with `--origin https://your-host` (`--port` changes the port).
    - Endpoints: `GET /ping` and `GET /thumbprint?host=cs01.corp.local&port=443`. It returns only the certificate's public fingerprints and subject; it stores and logs nothing.
    - The app works fully without it. (Safari blocks `https` pages talking to `http://127.0.0.1`; use the paste or PowerShell route there.)
 
@@ -100,7 +100,7 @@ Add a `Field` to a group in `schema.ts` (key, type, optional `since`/`until`, `r
 
 ### Deploying to GitHub Pages
 
-[`.github/workflows/pages.yml`](.github/workflows/pages.yml) runs tests, type-check and build, then publishes `dist/` to GitHub Pages on every push to `main`. In the repository settings set **Pages → Source: GitHub Actions**.
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) runs tests, type-check and build, then publishes `dist/` to GitHub Pages on every push to `main`. The site is served at **https://uagforge.omnissa.graa.dev** (`public/CNAME`). One-time setup: in the repository settings set **Pages → Source: GitHub Actions**, **Custom domain: `uagforge.omnissa.graa.dev`** and enable **Enforce HTTPS**; DNS needs a `CNAME` record `uagforge.omnissa` → `erikgraa.github.io` (under `graa.dev`).
 
 ## Branding
 

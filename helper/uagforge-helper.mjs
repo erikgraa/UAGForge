@@ -30,7 +30,7 @@ const originAllowed = (origin) => {
   try {
     const u = new URL(origin);
     if (u.hostname === 'localhost' || u.hostname === '127.0.0.1') return true;
-    return u.protocol === 'https:' && u.hostname.endsWith('.github.io');
+    return u.protocol === 'https:' && (u.hostname.endsWith('.github.io') || u.hostname === 'uagforge.omnissa.graa.dev');
   } catch {
     return false;
   }
@@ -103,5 +103,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`UAGForge helper ${VERSION} listening on http://127.0.0.1:${PORT} (Ctrl+C to stop)`);
-  console.log('Allowed origins: localhost, 127.0.0.1, https://*.github.io' + (extraOrigins.length ? ', ' + extraOrigins.join(', ') : ''));
+  console.log('Allowed origins: localhost, 127.0.0.1, https://*.github.io, https://uagforge.omnissa.graa.dev' + (extraOrigins.length ? ', ' + extraOrigins.join(', ') : ''));
 });
