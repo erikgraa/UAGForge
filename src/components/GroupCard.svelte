@@ -1,0 +1,50 @@
+<script lang="ts">
+  import { app } from '../lib/store.svelte';
+  import { fieldAvailable, groupAvailable, groupEnabled } from '../lib/model';
+  import type { GroupDef, Values } from '../lib/schema';
+  import type { Issue } from '../lib/validate';
+  import FieldInput from './FieldInput.svelte';
+
+  interface Props {
+    group: GroupDef;
+    issues: Issue[];
+  }
+  let { group, issues }: Props = $props();
+
+  const c = $derived(app.config);
+  const available = $derived(groupAvailable(group, c.version, c.platform));
+  const enabled = $derived(groupEnabled(group, c));
+  const visible = $derived(group.fields.filter((f) => fieldAvailable(f, c.version, c.platform, c.values)));
+  const hiddenByVersion = $derived(group.fields.filter((f) => f.since && c.version < f.since).length);
+
+  function err(fieldId: string): string | undefined {
+    return issues.find((i) => i.fieldId === fieldId && !i.list && i.level === 'error')?.message;
+  }
+</script>
+
+{#if available}
+  <section class="card">
+    <div class="card-head">
+      <h3>{group.title}</h3>
+      {#if group.enabledBy}
+        <label class="toggle">
+          <input id={`f-${group.enabledBy}`} type="checkbox" checked={c.values[group.enabledBy] === true} onchange={(e) => (app.config.values[group.enabledBy!] = e.currentTarget.checked)} />
+          Enabled
+        </label>
+      {/if}
+    </div>
+    {#if group.help}<p class="help">{group.help}</p>{/if}
+    {#if enabled}
+      <div class="grid">
+        {#each visible as f (f.id)}
+          <FieldInput field={f} bind:values={app.config.values as Values} error={err(f.id)} />
+        {/each}
+      </div>
+      {#if hiddenByVersion > 0}
+        <div class="notice">{hiddenByVersion} setting{hiddenByVersion > 1 ? 's' : ''} in this group {hiddenByVersion > 1 ? 'are' : 'is'} not available in UAG {c.version} and {hiddenByVersion > 1 ? 'are' : 'is'} hidden.</div>
+      {/if}
+    {:else}
+      <p class="help">Turn on to configure and include in the output.</p>
+    {/if}
+  </section>
+{/if}
