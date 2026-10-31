@@ -9,7 +9,7 @@
 
 ## 🚀 Demo
 
-A live demo is available at **[uagforge.omnissa.graa.dev](https://uagforge.omnissa.graa.dev)** - everything runs in your browser, nothing is uploaded.
+A live demo is available at **[uag-forge.omnissa.graa.dev](https://uag-forge.omnissa.graa.dev)** - everything runs in your browser, nothing is uploaded.
 
 ## ✨ Features
 
@@ -71,7 +71,7 @@ A static web page **cannot** open a TLS connection to read a remote server's cer
 2. **PowerShell one-liner** - copy and run it on any host that can reach the Connection Server; it prints all four thumbprints.
 3. **Optional local helper** ([`helper/uag-forge-helper.mjs`](helper/uag-forge-helper.mjs)) - a ~100-line, dependency-free Node script. Start it with `node helper/uag-forge-helper.mjs`; when it is running the app detects it and can fetch and apply the thumbprint with one click.
 
-   - Listens only on `http://127.0.0.1:47821`; rejects unexpected `Host` headers (DNS rebinding); answers only browsers from `localhost`, `*.github.io`, `uagforge.omnissa.graa.dev` or an origin you pass with `--origin https://your-host` (`--port` changes the port).
+   - Listens only on `http://127.0.0.1:47821`; rejects unexpected `Host` headers (DNS rebinding); answers only browsers from `localhost`, `*.github.io`, `uag-forge.omnissa.graa.dev` or an origin you pass with `--origin https://your-host` (`--port` changes the port).
    - Endpoints: `GET /ping` and `GET /thumbprint?host=cs01.corp.local&port=443`. It returns only the certificate's public fingerprints and subject; it stores and logs nothing.
    - The app works fully without it. (Safari blocks `https` pages talking to `http://127.0.0.1`; use the paste or PowerShell route there.)
 
