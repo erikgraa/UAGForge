@@ -3,13 +3,13 @@ import { isSupportedVersion, DEFAULT_VERSION } from './versions';
 import type { SectionId } from './schema';
 import type { SecretMode } from './generate';
 
-const DRAFT_KEY = 'uag-forge.draft';
-const THEME_KEY = 'uag-forge.theme';
+const DRAFT_KEY = 'gateway-forge.draft';
+const THEME_KEY = 'gateway-forge.theme';
 
-/** One-time move of values saved under the pre-rename "uagforge.*" keys. */
+/** One-time move of values saved under the pre-rename "uagforge.*" and "uag-forge.*" keys. */
 function migrateLegacyKeys(): void {
   try {
-    for (const [from, to] of [['uagforge.draft', DRAFT_KEY], ['uagforge.theme', THEME_KEY]]) {
+    for (const [from, to] of [['uagforge.draft', DRAFT_KEY], ['uagforge.theme', THEME_KEY], ['uag-forge.draft', DRAFT_KEY], ['uag-forge.theme', THEME_KEY]]) {
       const v = localStorage.getItem(from);
       if (v !== null) {
         if (localStorage.getItem(to) === null) localStorage.setItem(to, v);

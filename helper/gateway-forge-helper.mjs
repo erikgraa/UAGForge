@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// UAG Forge local helper (optional).
+// Gateway Forge local helper (optional).
 //
 // A static web page cannot open a TLS connection to read a server's certificate. This tiny,
 // dependency-free helper runs on YOUR machine, connects to the host you ask about, and returns only the
-// certificate's public fingerprints so UAG Forge can auto-fill thumbprint fields.
+// certificate's public fingerprints so Gateway Forge can auto-fill thumbprint fields.
 //
-//   node helper/uag-forge-helper.mjs [--port 47821] [--origin https://you.github.io]
+//   node helper/gateway-forge-helper.mjs [--port 47821] [--origin https://you.github.io]
 //
 // Security model: binds to 127.0.0.1 only, rejects unexpected Host headers (DNS rebinding), only answers
 // browsers whose Origin is allow-listed (localhost, *.github.io, or --origin), never stores or logs anything,
@@ -21,7 +21,7 @@ const opt = (name, def) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 && args[i + 1] ? args[i + 1] : def;
 };
-const PORT = Number(opt('port', process.env.UAG_FORGE_HELPER_PORT ?? 47821));
+const PORT = Number(opt('port', process.env.GATEWAY_FORGE_HELPER_PORT ?? 47821));
 const extraOrigins = args.flatMap((a, i) => (a === '--origin' && args[i + 1] ? [args[i + 1]] : []));
 
 const originAllowed = (origin) => {
@@ -30,7 +30,7 @@ const originAllowed = (origin) => {
   try {
     const u = new URL(origin);
     if (u.hostname === 'localhost' || u.hostname === '127.0.0.1') return true;
-    return u.protocol === 'https:' && (u.hostname.endsWith('.github.io') || u.hostname === 'uag-forge.omnissa.graa.dev');
+    return u.protocol === 'https:' && (u.hostname.endsWith('.github.io') || u.hostname === 'gateway-forge.graa.dev');
   } catch {
     return false;
   }
@@ -86,7 +86,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method !== 'GET') return send(405, { error: 'GET only' });
 
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`);
-  if (url.pathname === '/ping') return send(200, { app: 'uag-forge-helper', version: VERSION });
+  if (url.pathname === '/ping') return send(200, { app: 'gateway-forge-helper', version: VERSION });
   if (url.pathname === '/thumbprint') {
     const host = url.searchParams.get('host') ?? '';
     const port = Number(url.searchParams.get('port') ?? 443);
@@ -102,6 +102,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`UAG Forge helper ${VERSION} listening on http://127.0.0.1:${PORT} (Ctrl+C to stop)`);
-  console.log('Allowed origins: localhost, 127.0.0.1, https://*.github.io, https://uag-forge.omnissa.graa.dev' + (extraOrigins.length ? ', ' + extraOrigins.join(', ') : ''));
+  console.log(`Gateway Forge helper ${VERSION} listening on http://127.0.0.1:${PORT} (Ctrl+C to stop)`);
+  console.log('Allowed origins: localhost, 127.0.0.1, https://*.github.io, https://gateway-forge.graa.dev' + (extraOrigins.length ? ', ' + extraOrigins.join(', ') : ''));
 });

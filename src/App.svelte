@@ -33,7 +33,7 @@
   onMount(() => {
     const mq = matchMedia('(prefers-color-scheme: light)');
     const onScheme = () => {
-      if (!localStorage.getItem('uag-forge.theme')) app.setTheme(mq.matches ? 'light' : 'dark', false);
+      if (!localStorage.getItem('gateway-forge.theme')) app.setTheme(mq.matches ? 'light' : 'dark', false);
     };
     mq.addEventListener('change', onScheme);
     return () => mq.removeEventListener('change', onScheme);
@@ -58,7 +58,7 @@
 
 <div class="app">
   <header class="top">
-    <div class="brand"><img src="./logo.png" alt="" width="30" height="30" /><span>UAG Forge</span></div>
+    <div class="brand"><img src="./logo.png" alt="" width="30" height="30" /><span>Gateway Forge</span></div>
     <button class="cmdk" onclick={(e) => { e.stopPropagation(); app.showPalette = true; }} aria-label="Open command palette">
       <span>Search settings, jump to section…</span><kbd>{isMac ? '⌘' : 'Ctrl'} K</kbd>
     </button>

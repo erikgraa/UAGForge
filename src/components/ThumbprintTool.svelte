@@ -52,7 +52,7 @@
 
   async function checkHelper() {
     helperUp = await helperAvailable();
-    helperMsg = helperUp ? 'Helper detected.' : 'Helper not running (optional). Start it with: node helper/uag-forge-helper.mjs';
+    helperMsg = helperUp ? 'Helper detected.' : 'Helper not running (optional). Start it with: node helper/gateway-forge-helper.mjs';
   }
 
   async function fetchViaHelper() {
@@ -98,7 +98,7 @@
     <div class="row" style="margin-top:8px"><button class="small" onclick={async () => app.say((await copy(psCmd)) ? 'Copied' : 'Copy failed')}>Copy one-liner</button></div>
   {:else}
     <p class="help">
-      Run <code>node helper/uag-forge-helper.mjs</code> locally. It listens on <code>{HELPER_URL}</code>, fetches the certificate of <code>{hostPort}</code> and returns only its public fingerprints. The app works fully without it.
+      Run <code>node helper/gateway-forge-helper.mjs</code> locally. It listens on <code>{HELPER_URL}</code>, fetches the certificate of <code>{hostPort}</code> and returns only its public fingerprints. The app works fully without it.
     </p>
     <div class="row">
       <button class="small" onclick={checkHelper}>Check helper</button>
