@@ -34,7 +34,7 @@ A live demo is available at **[gateway-forge.graa.dev](https://gateway-forge.gra
 
 ## 🛡️ Supported UAG versions
 
-Gateway Forge supports every UAG release that is **not end-of-life** according to the [Omnissa Lifecycle Matrix](https://docs.omnissa.com/bundle/Product-Lifecycle-Matrix/page/lifecyclematrix.html) (snapshot **2026-10-30**; UAG inherits the lifecycle of the product it is integrated with):
+Gateway Forge supports every Omnissa UAG release that is **not end-of-life** according to the [Omnissa Lifecycle Matrix](https://docs.omnissa.com/bundle/Product-Lifecycle-Matrix/page/lifecyclematrix.html) (snapshot **2026-10-30**; UAG inherits the lifecycle of the product it is integrated with):
 
 `2212 · 2303 · 2306 · 2309 · 2312 · 2406 · 2412 · 2503 · 2506 · 2512 · 2603 · 2606 · 2609`
 

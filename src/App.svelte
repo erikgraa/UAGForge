@@ -58,7 +58,7 @@
 
 <div class="app">
   <header class="top">
-    <div class="brand"><img src="./logo.png" alt="" width="30" height="30" /><span>Gateway Forge</span></div>
+    <div class="brand"><img src="./logo.png" alt="" width="30" height="30" /><span>Gateway Forge</span><small class="tag">for Omnissa UAG</small></div>
     <button class="cmdk" onclick={(e) => { e.stopPropagation(); app.showPalette = true; }} aria-label="Open command palette">
       <span>Search settings, jump to section…</span><kbd>{isMac ? '⌘' : 'Ctrl'} K</kbd>
     </button>
