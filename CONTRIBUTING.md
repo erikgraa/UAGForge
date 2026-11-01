@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve UAG Forge.
+Thanks for helping improve Gateway Forge.
 
 ```bash
 npm install
@@ -25,4 +25,4 @@ Edit `VERSIONS` and `LIFECYCLE_SNAPSHOT` in `src/lib/versions.ts` when the [Omni
 
 ## Verifying against a real appliance
 
-Export an INI from your own UAG (Admin UI → Monitoring → Export) and use **Import** in UAG Forge. Unrecognised entries are listed in the preview - those are good candidates for new schema fields.
+Export an INI from your own UAG (Admin UI → Monitoring → Export) and use **Import** in Gateway Forge. Unrecognised entries are listed in the preview - those are good candidates for new schema fields.

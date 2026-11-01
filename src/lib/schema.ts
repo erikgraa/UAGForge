@@ -236,7 +236,7 @@ export const GROUPS: GroupDef[] = [
         help: 'Up to 24 characters: A-Z, 0-9, minus and period; no spaces. Must match the VM name on Azure.'
       }),
       bool('ceipEnabled', 'Join CEIP (Customer Experience Improvement Program)', 'ceipEnabled', false, {
-        help: 'Sends telemetry to Omnissa from the appliance. Off by default in UAG Forge.'
+        help: 'Sends telemetry to Omnissa from the appliance. Off by default in Gateway Forge.'
       }),
       bool('sshEnabled', 'Enable SSH', 'sshEnabled', false, { help: 'Not recommended; console access is normally sufficient.' }),
       num('sshPort', 'SSH port', 'sshPort', { default: 22, rule: 'port', showIf: (v) => v.sshEnabled === true }),
@@ -663,7 +663,7 @@ export const GROUPS: GroupDef[] = [
     section: 'tls',
     target: 'certs',
     iniSection: 'SSLCert',
-    help: 'File paths read by uagdeploy at deployment time (PEM, RSA key in PKCS#1 format). Certificate content is never stored by UAG Forge.',
+    help: 'File paths read by uagdeploy at deployment time (PEM, RSA key in PKCS#1 format). Certificate content is never stored by Gateway Forge.',
     fields: [
       text('cert_pemCerts', 'Internet-facing cert chain (PEM)', 'pemCerts', { wide: true, placeholder: 'C:\\certs\\uag-chain.pem', json: false }),
       text('cert_pemPrivKey', 'Internet-facing private key (PEM)', 'pemPrivKey', { wide: true, placeholder: 'C:\\certs\\uag-key.pem', json: false }),
