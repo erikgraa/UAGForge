@@ -23,7 +23,7 @@ jobs:
             echo "::warning::Could not fetch the Omnissa Lifecycle Matrix (docs site may block runners); skipping this check."
             exit 0
           fi
-          upstream=$(echo "$page" | sed -e 's/<[^>]*>/ /g' | grep -oE 'Unified Access Gateway [0-9]{4} +Supported' | grep -oE '[0-9]{4}' | sort -u | tr '\n' ' ' | sed 's/ $//')
+          upstream=$(echo "$page" | tr '\n' ' ' | sed -e 's/<[^>]*>/ /g' -e 's/&nbsp;/ /g' | tr -s ' ' | { grep -oE 'Unified Access Gateway [0-9]{4} Supported' || true; } | grep -oE '[0-9]{4}' | sort -u | tr '\n' ' ' | sed 's/ $//')
           local=$(grep -oE "id: '[0-9]{4}'" src/lib/versions.ts | grep -oE '[0-9]{4}' | sort -u | tr '\n' ' ' | sed 's/ $//')
           echo "upstream: $upstream"
           echo "local:    $local"
