@@ -28,10 +28,7 @@ jobs:
           if [ "$upstream" != "$local" ]; then
             title="UAG lifecycle matrix changed"
             if [ -z "$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number')" ]; then
-              gh issue create --title "$title" --body "Supported UAG versions per the Omnissa Lifecycle Matrix: \`$upstream\`.
-
-Versions in \`src/lib/versions.ts\`: \`$local\`.
-
-Update \`VERSIONS\`, \`LIFECYCLE_SNAPSHOT\` and the README list, then review new INI keys for the added release."
+              body="Supported UAG versions per the Omnissa Lifecycle Matrix: $upstream. Versions in src/lib/versions.ts: $local. Update VERSIONS, LIFECYCLE_SNAPSHOT and the README list, then review new INI keys for the added release."
+              gh issue create --title "$title" --body "$body"
             fi
           fi
