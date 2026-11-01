@@ -655,6 +655,20 @@ pre.code {
 .srow .result {
   flex: 1;
 }
+.site-footer {
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--mut);
+  font-size: 12px;
+  padding: 8px 18px;
+  text-align: center;
+}
+.site-footer strong {
+  color: var(--tx);
+}
+.site-footer a {
+  color: var(--acc);
+}
 .footer {
   color: var(--mut);
   font-size: 12px;
